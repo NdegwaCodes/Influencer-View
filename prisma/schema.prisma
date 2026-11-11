@@ -3,50 +3,55 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-model Campaign {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  title        String
-  description  String
-  instructions String
-  deadline     DateTime
-  status       String     @default("pending")
-  influencerID String
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  submission   Submission?
-  requirements Requirements?
+model User {
+  id          String     @id @default(cuid())
+  email       String     @unique
+  name        String
+  handle      String?
+  role        String     @default("INFLUENCER")
+  createdAt   DateTime   @default(now())
+  campaigns   Campaign[]
+}
 
-  @@index([influencerID])
+model Campaign {
+  id                String       @id @default(cuid())
+  title             String
+  brandName         String
+  description       String
+  instructions      String
+  platform          String
+  contentType       String
+  minimumEngagement Int          @default(0)
+  feeKes            Int
+  deadline          DateTime
+  status            String       @default("PENDING")
+  influencerId      String
+  influencer        User         @relation(fields: [influencerId], references: [id])
+  submissions       Submission[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([influencerId, status])
+  @@index([status])
 }
 
 model Submission {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  campaignId  String   @unique @db.ObjectId
+  id          String    @id @default(cuid())
+  campaignId  String
+  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   link        String
   notes       String?
-  submittedAt DateTime
-  campaign    Campaign @relation(fields: [campaignId], references: [id])
-  engagement  Engagement?
-}
+  submittedAt DateTime  @default(now())
+  decision    String?
+  reviewNote  String?
+  reviewedAt  DateTime?
+  likes       Int?
+  comments    Int?
+  shares      Int?
 
-model Requirements {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  campaignId       String   @unique @db.ObjectId
-  platform         String
-  contentType      String
-  minimumEngagement Int?
-  campaign         Campaign @relation(fields: [campaignId], references: [id])
+  @@index([campaignId, submittedAt])
 }
-
-model Engagement {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  submissionId String     @unique @db.ObjectId
-  likes        Int        @default(0)
-  shares       Int        @default(0)
-  comments     Int        @default(0)
-  submission   Submission @relation(fields: [submissionId], references: [id])
-} 

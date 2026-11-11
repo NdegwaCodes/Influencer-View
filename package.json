@@ -6,30 +6,33 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "db:setup": "prisma db push && prisma db seed",
+    "test": "tsx --test --test-concurrency=1 \"src/**/*.test.ts\"",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.5.2",
-    "@prisma/client": "^6.2.1",
-    "antd": "^5.23.0",
-    "autoprefixer": "^10.4.20",
-    "mongodb": "^6.12.0",
-    "next": "^15.1.4",
-    "next-auth": "^4.24.11",
-    "postcss": "^8.4.49",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "uuid": "^11.0.5"
+    "@prisma/client": "^6.19.3",
+    "next": "16.4.6",
+    "next-auth": "^4.24.15",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.1.4",
-    "prisma": "^6.2.1",
-    "ts-node": "^10.9.2",
-    "typescript": "5.7.3"
+    "eslint-config-next": "16.4.6",
+    "prisma": "^6.19.3",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }

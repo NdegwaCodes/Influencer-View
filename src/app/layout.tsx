@@ -1,66 +1,72 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Layout, Menu } from "antd";
-import Link from "next/link";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Geist } from 'next/font/google';
+import Link from 'next/link';
+import { Suspense } from 'react';
+import { SignOutButton } from '@/components/AuthButtons';
+import { currentUser } from '@/server/auth';
+import './globals.css';
 
-const { Header, Content, Footer } = Layout;
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Campaign Submission Tracker",
-  description: "Track your campaign submissions and performance",
+  title: 'Influencer View',
+  description: 'Campaign briefs, content submissions and brand reviews for creators in Kenya.',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const menuItems = [
-    {
-      key: "campaigns",
-      label: <Link href="/campaigns">Campaigns</Link>,
-    },
-    {
-      key: "performance",
-      label: <Link href="/performance">Performance</Link>,
-    },
-  ];
+async function HeaderNav() {
+  const user = await currentUser();
+  const links =
+    user?.role === 'BRAND'
+      ? [{ href: '/review', label: 'Review queue' }]
+      : user
+        ? [
+            { href: '/campaigns', label: 'Campaigns' },
+            { href: '/performance', label: 'Performance' },
+          ]
+        : [];
 
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Layout className="min-h-screen">
-          <Header className="bg-white border-b border-gray-200 px-4">
-            <div className="container mx-auto flex justify-between items-center h-full">
-              <Link href="/" className="text-xl font-bold">
-                Campaign Tracker
-              </Link>
-              <Menu 
-                mode="horizontal" 
-                items={menuItems}
-                className="border-none"
-                defaultSelectedKeys={["campaigns"]}
-              />
-            </div>
-          </Header>
-          <Content className="container mx-auto py-6 px-4">
-            <main>{children}</main>
-          </Content>
-          <Footer className="text-center bg-white border-t border-gray-200">
-            Campaign Submission Tracker ©{new Date().getFullYear()}
-          </Footer>
-        </Layout>
+    <>
+      <nav className="flex flex-1 gap-1">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+      {user ? (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-slate-500">{user.name}</span>
+          <SignOutButton />
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+export default function RootLayout({ children }: LayoutProps<'/'>) {
+  return (
+    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col bg-slate-50 text-slate-900">
+        <header className="border-b border-slate-200 bg-white">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+            <Link href="/" className="flex items-center gap-2 font-bold text-slate-900">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-violet-600 text-sm text-white">IV</span>
+              Influencer View
+            </Link>
+            <Suspense fallback={<div className="flex-1" />}>
+              <HeaderNav />
+            </Suspense>
+          </div>
+        </header>
+        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">{children}</main>
+        <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+          Influencer View is a portfolio project by Brian Ndegwa. Brands and campaigns are sample data.
+        </footer>
       </body>
     </html>
   );
